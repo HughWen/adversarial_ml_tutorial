@@ -49,7 +49,71 @@ import json
 
 with open("imagenet_class_index.json") as f:
     imagenet_classes = {int(i):x[1] for i,x in json.load(f).items()}
+
+print(type(pred))
 print(imagenet_classes[pred.max(dim=1)[1].item()])
 
 
 # %%
+# Creating an adversarial example
+import torch.optim as optim
+
+
+epsilon = 2./255
+
+delta = torch.zeros_like(pig_tensor, requires_grad=True)
+opt = optim.SGD([delta], lr=1e-1)
+
+for t in range(30):
+    pred = model(norm(pig_tensor + delta))
+    loss = -nn.CrossEntropyLoss()(pred, torch.LongTensor([341]))
+    if t % 5 == 0:
+        print(t, loss.item())
+    
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+    delta.data.clamp_(-epsilon, epsilon)
+
+print('True class probability:', nn.Softmax(dim=1)(pred)[0,341].item())
+
+
+# %%
+max_class = pred.max(dim=1)[1].item()
+print('Predicted class:', imagenet_classes[max_class])
+print('Predicted probability:', nn.Softmax(dim=1)(pred)[0,max_class].item())
+
+
+# %%
+plt.imshow((pig_tensor + delta)[0].detach().numpy().transpose(1, 2, 0))
+# plt.imshow((50 * delta + 0.5)[0].detach().numpy().transpose(1, 2, 0))
+plt.imshow((50 * delta)[0].detach().numpy().transpose(1, 2, 0))
+
+# Targeted attacks
+# %%
+delta = torch.zeros_like(pig_tensor, requires_grad=True)
+opt = optim.SGD([delta], lr=5e-3)
+
+for t in range(100):
+    pred = model(norm(pig_tensor + delta))
+    loss = (-nn.CrossEntropyLoss()(pred, torch.LongTensor([341])) + nn.CrossEntropyLoss()(pred, torch.LongTensor([404])))
+    if t % 10 == 0:
+        print(t, loss.item())
+    
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+    delta.data.clamp_(-epsilon, epsilon)
+
+
+# %%
+max_class = pred.max(dim=1)[1].item()
+print("Predicted class: ", imagenet_classes[max_class])
+print("Predicted probability:", nn.Softmax(dim=1)(pred)[0,max_class].item())
+
+
+# %%
+plt.imshow((pig_tensor + delta)[0].detach().numpy().transpose(1, 2, 0))
+
+# %%
+plt.imshow((50 * delta + 0.5)[0].detach().numpy().transpose(1, 2, 0))
