@@ -87,7 +87,7 @@ print('Predicted probability:', nn.Softmax(dim=1)(pred)[0,max_class].item())
 # %%
 plt.imshow((pig_tensor + delta)[0].detach().numpy().transpose(1, 2, 0))
 # plt.imshow((50 * delta + 0.5)[0].detach().numpy().transpose(1, 2, 0))
-plt.imshow((50 * delta)[0].detach().numpy().transpose(1, 2, 0))
+plt.imshow((delta)[0].detach().numpy().transpose(1, 2, 0))
 
 # Targeted attacks
 # %%
@@ -116,4 +116,4 @@ print("Predicted probability:", nn.Softmax(dim=1)(pred)[0,max_class].item())
 plt.imshow((pig_tensor + delta)[0].detach().numpy().transpose(1, 2, 0))
 
 # %%
-plt.imshow((50 * delta + 0.5)[0].detach().numpy().transpose(1, 2, 0))
+plt.imshow((50 * delta)[0].detach().numpy().transpose(1, 2, 0))
